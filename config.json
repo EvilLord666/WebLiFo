@@ -4,6 +4,15 @@
         "address": "localhost",
         "port": 8765
     },
+    "db": {
+        "hostname": "127.0.0.1",
+        "port": 5432,
+        "database": "web_lifo",
+        "user": "developer",
+        "password": "123",
+        "max_open_connections": 100,
+        "max_idle_connections": 10
+    },
     "logging": {
         "level": "debug",
         "appenders": [
