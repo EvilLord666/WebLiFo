@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/wissance/stringFormatter"
-	"gorm.io/gorm"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -15,7 +14,6 @@ import (
 type WebLiFoAppRunner struct {
 	configFile   *string
 	cfg          *config.AppConfig
-	db           *gorm.DB
 	logger       *logging.AppLogger
 	modelContext *model.AppModelContext
 }
@@ -45,6 +43,12 @@ func (w *WebLiFoAppRunner) Init() (bool, error) {
 	w.logger = logging.CreateLogger(&w.cfg.LoggingCfg)
 	w.logger.Init()
 	// 3. Init database
+	w.modelContext = model.CreateAppModelContext(w.logger, &w.cfg.DbCfg)
+	err = w.modelContext.Init()
+	if err != nil {
+		w.logger.Error(stringFormatter.Format("An error occurred during init ORM Db Context: {0}", err.Error()))
+		return false, err
+	}
 	// 4. Init web api
 	return true, nil
 }

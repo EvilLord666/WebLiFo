@@ -19,7 +19,7 @@ func CreateAppModelContext(logger *logging.AppLogger, dbConfig *config.DbConfig)
 	return &AppModelContext{logger: logger, dbConfig: dbConfig}
 }
 
-func (context *AppModelContext) Init() *gorm.DB {
+func (context *AppModelContext) Init() error {
 	connStr := g.BuildConnectionString(g.Postgres, context.dbConfig.Hostname, context.dbConfig.Port, context.dbConfig.Database,
 		context.dbConfig.User, context.dbConfig.Password, "disable")
 	gCfg := gorm.Config{}
@@ -33,7 +33,7 @@ func (context *AppModelContext) Init() *gorm.DB {
 	// then it'll be caught inside application.go's initDatabase().
 	sqlConfig, err := db.DB()
 	if err != nil {
-		return db
+		return err
 	}
 
 	// If no max_idle_connections is passed, the value will be kept at default = 10
@@ -51,7 +51,7 @@ func (context *AppModelContext) Init() *gorm.DB {
 	// Also consider that stateMachineService and stateMachineExecutor share the database (as of 2.7),
 	// hence total max_connections between them should be kept under postgres deployment's limits.
 
-	return db
+	return nil
 }
 
 func (context *AppModelContext) GetContext() *gorm.DB {
