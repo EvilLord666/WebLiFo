@@ -6,8 +6,9 @@ import (
 )
 
 type WebLiFoAppRunner struct {
-	cfg *config.ServerConfig
-	db  *gorm.DB
+	configFile *string
+	cfg        *config.ServerConfig
+	db         *gorm.DB
 }
 
 func CreateApp(config string) AppRunner {
