@@ -1,9 +1,9 @@
 package logging
 
 import (
+	"WebLiFo/config"
 	"fmt"
 	"github.com/mattn/go-colorable"
-	"github.com/wissance/Ferrum/config"
 	"io"
 	"os"
 	"path/filepath"
