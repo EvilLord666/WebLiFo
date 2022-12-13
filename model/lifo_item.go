@@ -1,14 +1,14 @@
 package model
 
 import (
-	"database/sql"
 	"gorm.io/gorm"
 )
 
 type LifoItem struct {
 	gorm.Model
-	Value          string
-	PreviousItemId sql.NullInt32
+	Value          string    `gorm:"type:varchar(max);not null;default:'';"`
+	Previous       *LifoItem `gorm:"foreignkey:PreviousItemId;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	PreviousItemId uint
 	LifoId         uint
-	Lifo           Lifo
+	Lifo           Lifo `gorm:"foreignkey:LifoId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
