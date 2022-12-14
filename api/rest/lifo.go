@@ -182,7 +182,25 @@ func (webApiContext *WebApiContext) PushLifo(respWriter http.ResponseWriter, req
 }
 
 func (webApiContext *WebApiContext) PopLifo(respWriter http.ResponseWriter, request *http.Request) {
-
+	webApiContext.beforeHandle(&respWriter)
+	var result interface{}
+	status := http.StatusOK
+	vars := mux.Vars(request)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		status = http.StatusBadRequest
+	} else {
+		poppedItem, err := managers.PopFromLifo(uint(id), webApiContext.DbContext, webApiContext.Logger)
+		msg := ""
+		if err != nil {
+			if err != managers.LifoIsEmpty {
+				status = http.StatusInternalServerError
+			}
+			msg = err.Error()
+		}
+		result = factory.CreateLifoOperation(dto.Pop, err == nil, msg, &poppedItem)
+	}
+	webApiContext.afterHandle(&respWriter, status, result)
 }
 
 func (webApiContext *WebApiContext) FlushLifo(respWriter http.ResponseWriter, request *http.Request) {

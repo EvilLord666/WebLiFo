@@ -11,6 +11,7 @@ import (
 )
 
 var LifoIsFull error = errors.New("lifo is full, it is unable to add more items")
+var LifoIsEmpty error = errors.New("there is no more items in lifo, nothing to pop")
 
 func PushToLifo(lifoId uint, lifoItem *dto.LifoItem, db *gorm.DB, logger *logging.AppLogger) (model.LifoItem, error) {
 	var newTopLifoItem model.LifoItem
@@ -40,4 +41,45 @@ func PushToLifo(lifoId uint, lifoItem *dto.LifoItem, db *gorm.DB, logger *loggin
 		return nil
 	})
 	return newTopLifoItem, err
+}
+
+func PopFromLifo(lifoId uint, db *gorm.DB, logger *logging.AppLogger) (model.LifoItem, error) {
+	var topItem model.LifoItem
+	err := db.Transaction(func(tx *gorm.DB) error {
+		// 1. Grt Lifo, check Items
+		lifo, err := GetLifoByIdWithItems(lifoId, tx, logger)
+		if err != nil {
+			return err
+		}
+		if len(lifo.Items) == 0 {
+			return LifoIsEmpty
+		}
+		// 2. Find 2 items : 1 - top item , and item that have
+		topItem = lifo.Items[0]
+
+		if len(lifo.Items) > 1 {
+			var nextTopItem model.LifoItem
+			err = tx.Where("previous_item_id = ? AND lifo_id = ?", topItem.ID, lifoId).First(&nextTopItem).Error
+			if err != nil {
+				logger.Error("An unexpected error occurred during getting item that should point on the top of lifo")
+				return err
+			}
+			nextTopItem.PreviousItemId = 0
+			nextTopItem.Previous = nil
+			err = tx.Save(&nextTopItem).Error
+			if err != nil {
+				logger.Error(stringFormatter.Format("An error occurred during setting lifo item with id: {0}, to point on the top of lifo: {1}, error: {2}",
+					nextTopItem.ID, lifoId, err.Error()))
+				return err
+			}
+			err = tx.Unscoped().Delete(&topItem).Error
+			if err != nil {
+				logger.Error(stringFormatter.Format("An error occurred during removing lifo: {0}, top item, error: {1}",
+					lifoId, err.Error()))
+				return err
+			}
+		}
+		return nil
+	})
+	return topItem, err
 }
