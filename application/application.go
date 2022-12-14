@@ -1,21 +1,32 @@
 package application
 
 import (
+	"WebLiFo/api/rest"
 	"WebLiFo/config"
 	"WebLiFo/logging"
 	"WebLiFo/model"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	r "github.com/wissance/gwuu/api/rest"
 	"github.com/wissance/stringFormatter"
+	"gopkg.in/natefinch/lumberjack.v2"
+	"io"
 	"io/ioutil"
+	"net/http"
+	"os"
 	"path/filepath"
 )
 
 type WebLiFoAppRunner struct {
-	configFile   *string
-	cfg          *config.AppConfig
-	logger       *logging.AppLogger
-	modelContext *model.AppModelContext
+	configFile    *string
+	cfg           *config.AppConfig
+	logger        *logging.AppLogger
+	modelContext  *model.AppModelContext
+	httpHandler   *http.Handler
+	webApiHandler *r.WebApiHandler
+	webApiContext *rest.WebApiContext
 }
 
 func CreateApp(config string) AppRunner {
@@ -57,6 +68,22 @@ func (w *WebLiFoAppRunner) GetLogger() *logging.AppLogger {
 	return nil
 }
 
+func (w *WebLiFoAppRunner) initRestApi() error {
+	w.webApiHandler = r.NewWebApiHandler(true, r.AnyOrigin)
+	w.webApiContext = &rest.WebApiContext{DbContext: w.modelContext.GetContext(), Logger: w.logger}
+	router := w.webApiHandler.Router
+	// Setting up listener for logging
+	appenderIndex := w.logger.GetAppenderIndex(config.RollingFile, w.cfg.LoggingCfg.Appenders)
+	if appenderIndex == -1 {
+		w.logger.Info("The RollingFile appender is not found.")
+		var resultRouter http.Handler = router
+		w.httpHandler = &resultRouter
+		return nil
+	}
+	w.httpHandler = w.createHttpLoggingHandler(appenderIndex, router)
+	return nil
+}
+
 func (w *WebLiFoAppRunner) readAppConfig() error {
 	absPath, err := filepath.Abs(*w.configFile)
 	if err != nil {
@@ -77,4 +104,28 @@ func (w *WebLiFoAppRunner) readAppConfig() error {
 	}
 
 	return nil
+}
+
+func (w *WebLiFoAppRunner) createHttpLoggingHandler(index int, router *mux.Router) *http.Handler {
+	var resultRouter http.Handler = router
+
+	destination := w.cfg.LoggingCfg.Appenders[index].Destination
+	lumberjackWriter := lumberjack.Logger{
+		Filename:   string(destination.File),
+		MaxSize:    destination.MaxSize,
+		MaxAge:     destination.MaxAge,
+		MaxBackups: destination.MaxBackups,
+		LocalTime:  destination.LocalTime,
+		Compress:   false,
+	}
+
+	if w.cfg.LoggingCfg.LogHTTP {
+		if w.cfg.LoggingCfg.ConsoleOutHTTP {
+			writer := io.MultiWriter(&lumberjackWriter, os.Stdout)
+			resultRouter = handlers.LoggingHandler(writer, router)
+		} else {
+			resultRouter = handlers.LoggingHandler(&lumberjackWriter, router)
+		}
+	}
+	return &resultRouter
 }
