@@ -6,7 +6,7 @@ import (
 )
 
 func CreateLifoInfo(lifo *model.Lifo) dto.LifoInfo {
-	return dto.LifoInfo{Id: lifo.ID, Name: lifo.Name, Description: lifo.Description}
+	return dto.LifoInfo{Id: lifo.ID, Name: lifo.Name, Description: lifo.Description, Size: lifo.Size}
 }
 
 func CreateLifoWithItems(lifo *model.Lifo) dto.Lifo {
