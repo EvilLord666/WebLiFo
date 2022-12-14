@@ -86,6 +86,14 @@ func (w *WebLiFoAppRunner) initRestApi() error {
 	w.webApiContext = &rest.WebApiContext{DbContext: w.modelContext.GetContext(), Logger: w.logger}
 	router := w.webApiHandler.Router
 	// Setting up listener for logging
+	w.webApiHandler.HandleFunc(router, "/api/lifo", w.webApiContext.GetAllLifo, http.MethodGet)
+	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}", w.webApiContext.GetLifoById, http.MethodGet)
+	w.webApiHandler.HandleFunc(router, "/api/lifo", w.webApiContext.CreateLifo, http.MethodPost)
+	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}", w.webApiContext.UpdateLifo, http.MethodPut)
+	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}", w.webApiContext.DeleteLifo, http.MethodDelete)
+	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}/push", w.webApiContext.PushLifo, http.MethodPost)
+	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}/pop", w.webApiContext.PopLifo, http.MethodPost)
+
 	appenderIndex := w.logger.GetAppenderIndex(config.RollingFile, w.cfg.LoggingCfg.Appenders)
 	if appenderIndex == -1 {
 		w.logger.Info("The RollingFile appender is not found.")
