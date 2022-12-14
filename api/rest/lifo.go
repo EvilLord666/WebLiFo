@@ -143,13 +143,14 @@ func (webApiContext *WebApiContext) DeleteLifo(respWriter http.ResponseWriter, r
 	if err != nil {
 		status = http.StatusBadRequest
 	} else {
-		success, err := managers.DeleteLifo(uint(id), webApiContext.DbContext, webApiContext.Logger)
-		if success {
+		_, err := managers.DeleteLifo(uint(id), webApiContext.DbContext, webApiContext.Logger)
+		if err == nil {
 			status = http.StatusNoContent
 		} else {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				status = http.StatusNotFound
 			} else {
+				webApiContext.Logger.Error(stringFormatter.Format("An error occurred during removing lifo with id: {0}, error: {1}", id, err.Error()))
 				status = http.StatusInternalServerError
 			}
 			webApiContext.Logger.Error(err.Error())
@@ -204,6 +205,28 @@ func (webApiContext *WebApiContext) PopLifo(respWriter http.ResponseWriter, requ
 }
 
 func (webApiContext *WebApiContext) FlushLifo(respWriter http.ResponseWriter, request *http.Request) {
+	webApiContext.beforeHandle(&respWriter)
+	var result interface{}
+	status := http.StatusNoContent
+	vars := mux.Vars(request)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		status = http.StatusBadRequest
+	} else {
+		_, err := managers.FlushLifo(uint(id), webApiContext.DbContext, webApiContext.Logger)
+		if err == nil {
+			status = http.StatusNoContent
+		} else {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			} else {
+				webApiContext.Logger.Error(stringFormatter.Format("An error occurred during flushing lifo with id: {0}, error: {1}", id, err.Error()))
+				status = http.StatusInternalServerError
+			}
+			webApiContext.Logger.Error(err.Error())
+		}
+	}
+	webApiContext.afterHandle(&respWriter, status, result)
 
 }
 
