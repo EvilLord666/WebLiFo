@@ -20,6 +20,6 @@ func GetLifoById(id uint, db *gorm.DB, logger *logging.AppLogger) (model.Lifo, e
 
 func GetLifoByIdWithItems(id uint, db *gorm.DB, logger *logging.AppLogger) (model.Lifo, error) {
 	var lifo model.Lifo
-	err := db.First(&lifo, "id = ?", id).Error
+	err := db.Preload("Items").First(&lifo, "id = ?", id).Error
 	return lifo, err
 }
