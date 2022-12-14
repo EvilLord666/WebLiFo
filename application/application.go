@@ -6,6 +6,7 @@ import (
 	"WebLiFo/logging"
 	"WebLiFo/model"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -36,7 +37,14 @@ func CreateApp(config string) AppRunner {
 }
 
 func (w *WebLiFoAppRunner) Start() (bool, error) {
-	return true, nil
+	var err error
+	go func() {
+		err = w.startWebService()
+		if err != nil {
+			w.logger.Error(stringFormatter.Format("An error occurred during API Service Start"))
+		}
+	}()
+	return err == nil, err
 }
 
 func (w *WebLiFoAppRunner) Stop() (bool, error) {
@@ -65,7 +73,7 @@ func (w *WebLiFoAppRunner) Init() (bool, error) {
 }
 
 func (w *WebLiFoAppRunner) GetLogger() *logging.AppLogger {
-	return nil
+	return w.logger
 }
 
 func (w *WebLiFoAppRunner) initRestApi() error {
@@ -82,6 +90,23 @@ func (w *WebLiFoAppRunner) initRestApi() error {
 	}
 	w.httpHandler = w.createHttpLoggingHandler(appenderIndex, router)
 	return nil
+}
+
+func (w *WebLiFoAppRunner) startWebService() error {
+	var err error
+	addressTemplate := "{0}:{1}"
+	address := stringFormatter.Format(addressTemplate, w.cfg.ServerCfg.Address, w.cfg.ServerCfg.Port)
+	switch w.cfg.ServerCfg.Schema {
+	case config.HTTP:
+		w.logger.Info(stringFormatter.Format("Starting \"HTTP\" WEB API Service on address: \"{0}\"", address))
+		err = http.ListenAndServe(address, *w.httpHandler)
+		if err != nil {
+			w.logger.Error(stringFormatter.Format("An error occurred during attempt to start \"HTTP\" WEB API Service: {0}", err.Error()))
+		}
+	case config.HTTPS:
+		return errors.New("not supported")
+	}
+	return err
 }
 
 func (w *WebLiFoAppRunner) readAppConfig() error {
