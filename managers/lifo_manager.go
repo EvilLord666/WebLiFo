@@ -73,10 +73,15 @@ func DeleteLifo(id uint, db *gorm.DB, logger *logging.AppLogger) (bool, error) {
 }
 
 func FlushLifo(id uint, db *gorm.DB, logger *logging.AppLogger) (bool, error) {
-	lifo, err := GetLifoById(id, db, logger)
+	_, err := GetLifoById(id, db, logger)
 	if err != nil {
 		return false, err
 	}
-	err = db.Model(&lifo).Association("Items").Clear()
+	//err = db.Model(&lifo).Association("Items").Replace([]model.LifoItem{})
+	/*if err != nil {
+		return false, err
+	}
+	err = db.Save(&lifo).Error*/
+	err = db.Where("lifo_id = ?", id).Unscoped().Delete(&model.LifoItem{}).Error
 	return err == nil, err
 }

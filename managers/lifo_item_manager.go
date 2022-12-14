@@ -4,6 +4,7 @@ import (
 	"WebLiFo/dto"
 	"WebLiFo/logging"
 	"WebLiFo/model"
+	"database/sql"
 	"errors"
 	g "github.com/wissance/gwuu/gorm"
 	"github.com/wissance/stringFormatter"
@@ -26,7 +27,7 @@ func PushToLifo(lifoId uint, lifoItem *dto.LifoItem, db *gorm.DB, logger *loggin
 			return LifoIsFull
 		}
 		// 2. Save new top lifo item
-		newTopLifoItem = model.LifoItem{LifoId: lifoId, PreviousItemId: 0, Value: lifoItem.Value}
+		newTopLifoItem = model.LifoItem{LifoId: lifoId, PreviousItemId: sql.NullInt32{Valid: false}, Value: lifoItem.Value}
 		newTopLifoItem.ID = g.GetNextTableId(tx, newTopLifoItem.GetTableName())
 		err = tx.Create(&newTopLifoItem).Error
 		if err != nil {
@@ -35,7 +36,7 @@ func PushToLifo(lifoId uint, lifoItem *dto.LifoItem, db *gorm.DB, logger *loggin
 		// 3. Set to previous LifoItem previous_lifo_item_id to null
 		if len(lifo.Items) > 0 {
 			previousTopItem := lifo.Items[0]
-			previousTopItem.PreviousItemId = newTopLifoItem.ID
+			previousTopItem.PreviousItemId = sql.NullInt32{Valid: true, Int32: int32(newTopLifoItem.ID)}
 			previousTopItem.Previous = &newTopLifoItem
 		}
 		return nil
@@ -64,7 +65,7 @@ func PopFromLifo(lifoId uint, db *gorm.DB, logger *logging.AppLogger) (model.Lif
 				logger.Error("An unexpected error occurred during getting item that should point on the top of lifo")
 				return err
 			}
-			nextTopItem.PreviousItemId = 0
+			nextTopItem.PreviousItemId = sql.NullInt32{Valid: false}
 			nextTopItem.Previous = nil
 			err = tx.Save(&nextTopItem).Error
 			if err != nil {
