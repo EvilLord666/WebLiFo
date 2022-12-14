@@ -12,3 +12,7 @@ type LifoItem struct {
 	LifoId         uint
 	Lifo           Lifo `gorm:"foreignkey:LifoId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
+
+func (l *LifoItem) GetTableName() string {
+	return "lifo_items"
+}

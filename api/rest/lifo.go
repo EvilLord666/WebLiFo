@@ -159,7 +159,26 @@ func (webApiContext *WebApiContext) DeleteLifo(respWriter http.ResponseWriter, r
 }
 
 func (webApiContext *WebApiContext) PushLifo(respWriter http.ResponseWriter, request *http.Request) {
-
+	webApiContext.beforeHandle(&respWriter)
+	var result interface{}
+	var lifoInfo dto.LifoItem
+	status := http.StatusOK
+	vars := mux.Vars(request)
+	id, err := strconv.Atoi(vars["id"])
+	decoder := json.NewDecoder(request.Body)
+	decodeErr := decoder.Decode(&lifoInfo)
+	if err != nil || decodeErr != nil {
+		status = http.StatusBadRequest
+	} else {
+		msg := ""
+		newTopItem, err := managers.PushToLifo(uint(id), &lifoInfo, webApiContext.DbContext, webApiContext.Logger)
+		if err != nil {
+			status = http.StatusInternalServerError
+			msg = err.Error()
+		}
+		result = factory.CreateLifoOperation(dto.Push, err == nil, msg, &newTopItem)
+	}
+	webApiContext.afterHandle(&respWriter, status, result)
 }
 
 func (webApiContext *WebApiContext) PopLifo(respWriter http.ResponseWriter, request *http.Request) {
