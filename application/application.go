@@ -63,9 +63,15 @@ func (w *WebLiFoAppRunner) Init() (bool, error) {
 	w.logger.Init()
 	// 3. Init database
 	w.modelContext = model.CreateAppModelContext(w.logger, &w.cfg.DbCfg)
+
 	err = w.modelContext.Init()
 	if err != nil {
 		w.logger.Error(stringFormatter.Format("An error occurred during init ORM Db Context: {0}", err.Error()))
+		return false, err
+	}
+	err = w.modelContext.Prepare()
+	if err != nil {
+		w.logger.Error(stringFormatter.Format("An error occurred during prepare Database (structure migrate & data init): {0}", err.Error()))
 		return false, err
 	}
 	// 4. Init web api

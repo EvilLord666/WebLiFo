@@ -67,13 +67,9 @@ func (context AppModelContext) Close() bool {
 }
 
 // Prepare function for Auto migrate & set up relations & data init
-func (context AppModelContext) Prepare() bool {
+func (context AppModelContext) Prepare() error {
 	err := context.migrateDatabaseTable(context.dbContext)
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err
 }
 
 func (context AppModelContext) migrateDatabaseTable(db *gorm.DB) error {
