@@ -69,6 +69,11 @@ func (w *WebLiFoAppRunner) Init() (bool, error) {
 		return false, err
 	}
 	// 4. Init web api
+	err = w.initRestApi()
+	if err != nil {
+		w.logger.Error(stringFormatter.Format("An error occurred during init Web Api: {0}", err.Error()))
+		return false, err
+	}
 	return true, nil
 }
 
