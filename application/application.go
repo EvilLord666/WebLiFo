@@ -94,6 +94,7 @@ func (w *WebLiFoAppRunner) initRestApi() error {
 	// Setting up listener for logging
 	w.webApiHandler.HandleFunc(router, "/api/lifo", w.webApiContext.GetAllLifo, http.MethodGet)
 	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}", w.webApiContext.GetLifoById, http.MethodGet)
+	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}/items", w.webApiContext.GetLifoByIdWithItems, http.MethodGet)
 	w.webApiHandler.HandleFunc(router, "/api/lifo", w.webApiContext.CreateLifo, http.MethodPost)
 	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}", w.webApiContext.UpdateLifo, http.MethodPut)
 	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}", w.webApiContext.DeleteLifo, http.MethodDelete)
