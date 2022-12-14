@@ -6,7 +6,6 @@ import (
 	"WebLiFo/model"
 	"database/sql"
 	"errors"
-	g "github.com/wissance/gwuu/gorm"
 	"github.com/wissance/stringFormatter"
 	"gorm.io/gorm"
 )
@@ -27,19 +26,21 @@ func PushToLifo(lifoId uint, lifoItem *dto.LifoItem, db *gorm.DB, logger *loggin
 			return LifoIsFull
 		}
 		// 2. Save new top lifo item
-		newTopLifoItem = model.LifoItem{LifoId: lifoId, PreviousItemId: sql.NullInt32{Valid: false}, Value: lifoItem.Value}
-		newTopLifoItem.ID = g.GetNextTableId(tx, newTopLifoItem.GetTableName())
-		err = tx.Create(&newTopLifoItem).Error
+		newTopLifoItem = model.LifoItem{LifoId: lifoId, PreviousItemId: sql.NullInt32{Valid: false}, Previous: nil, Value: lifoItem.Value}
+		//newTopLifoItem.ID = g.GetNextTableId(tx, newTopLifoItem.GetTableName())
+		err = tx.Save(&newTopLifoItem).Error
 		if err != nil {
 			return err
 		}
 		// 3. Set to previous LifoItem previous_lifo_item_id to null
+		var previousTopItem model.LifoItem
 		if len(lifo.Items) > 0 {
-			previousTopItem := lifo.Items[0]
+			previousTopItem = selectTopItem(&lifo.Items)
 			previousTopItem.PreviousItemId = sql.NullInt32{Valid: true, Int32: int32(newTopLifoItem.ID)}
 			previousTopItem.Previous = &newTopLifoItem
+			err = tx.Save(&previousTopItem).Error
 		}
-		return nil
+		return err
 	})
 	return newTopLifoItem, err
 }
@@ -83,4 +84,13 @@ func PopFromLifo(lifoId uint, db *gorm.DB, logger *logging.AppLogger) (model.Lif
 		return nil
 	})
 	return topItem, err
+}
+
+func selectTopItem(items *[]model.LifoItem) model.LifoItem {
+	for _, item := range *items {
+		if !item.PreviousItemId.Valid {
+			return item
+		}
+	}
+	return model.LifoItem{}
 }

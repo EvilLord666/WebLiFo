@@ -27,7 +27,7 @@ func GetLifoById(id uint, db *gorm.DB, logger *logging.AppLogger) (model.Lifo, e
 
 func GetLifoByIdWithItems(id uint, db *gorm.DB, logger *logging.AppLogger) (model.Lifo, error) {
 	var lifo model.Lifo
-	err := db.Preload("Items").First(&lifo, "id = ?", id).Order("previous_item_id ASC").Error
+	err := db.Preload("Items").First(&lifo, "id = ?", id).Order("created_at DESC").Error
 	return lifo, err
 }
 
