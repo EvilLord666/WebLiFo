@@ -11,3 +11,7 @@ type Lifo struct {
 	Size        int        `gorm:"type:int;not null;default:16"`
 	Items       []LifoItem `gorm:"ForeignKey:LifoId"`
 }
+
+func (l *Lifo) GetTableName() string {
+	return "lifos"
+}
