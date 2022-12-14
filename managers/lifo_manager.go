@@ -43,7 +43,7 @@ func CreateLifo(lifo *dto.LifoInfo, db *gorm.DB, logger *logging.AppLogger) (mod
 	return newItem, err
 }
 
-func UpdateLifo(lifo dto.LifoInfo, id uint, db *gorm.DB, logger *logging.AppLogger) (model.Lifo, error) {
+func UpdateLifo(lifo *dto.LifoInfo, id uint, db *gorm.DB, logger *logging.AppLogger) (model.Lifo, error) {
 	existingLifo, err := GetLifoByIdWithItems(id, db, logger)
 	if err != nil {
 		return existingLifo, err

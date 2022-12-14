@@ -106,11 +106,56 @@ func (webApiContext *WebApiContext) CreateLifo(respWriter http.ResponseWriter, r
 }
 
 func (webApiContext *WebApiContext) UpdateLifo(respWriter http.ResponseWriter, request *http.Request) {
-
+	webApiContext.beforeHandle(&respWriter)
+	var result interface{}
+	var lifoInfo dto.LifoInfo
+	status := http.StatusOK
+	vars := mux.Vars(request)
+	id, err := strconv.Atoi(vars["id"])
+	decoder := json.NewDecoder(request.Body)
+	decodeErr := decoder.Decode(&lifoInfo)
+	if err != nil || decodeErr != nil {
+		status = http.StatusBadRequest
+	} else {
+		lifo, err := managers.UpdateLifo(&lifoInfo, uint(id), webApiContext.DbContext, webApiContext.Logger)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			} else if errors.Is(err, managers.BadSizeError) {
+				status = http.StatusBadRequest
+			} else {
+				webApiContext.Logger.Error(stringFormatter.Format("An unexpected error occurred during lifo with id \"{0}\" update, error: {1}", id, err.Error()))
+				status = http.StatusInternalServerError
+			}
+		} else {
+			result = factory.CreateLifoInfo(&lifo)
+		}
+	}
+	webApiContext.afterHandle(&respWriter, status, result)
 }
 
 func (webApiContext *WebApiContext) DeleteLifo(respWriter http.ResponseWriter, request *http.Request) {
-
+	status := http.StatusOK
+	webApiContext.beforeHandle(&respWriter)
+	vars := mux.Vars(request)
+	var result interface{}
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		status = http.StatusBadRequest
+	} else {
+		success, err := managers.DeleteLifo(uint(id), webApiContext.DbContext, webApiContext.Logger)
+		if success {
+			status = http.StatusNoContent
+		} else {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			} else {
+				status = http.StatusInternalServerError
+			}
+			webApiContext.Logger.Error(err.Error())
+		}
+	}
+	webApiContext.afterHandle(&respWriter, status, result)
 }
 
 func (webApiContext *WebApiContext) PushLifo(respWriter http.ResponseWriter, request *http.Request) {
