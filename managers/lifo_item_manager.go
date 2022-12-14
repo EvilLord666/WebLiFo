@@ -57,7 +57,7 @@ func PopFromLifo(lifoId uint, db *gorm.DB, logger *logging.AppLogger) (model.Lif
 			return LifoIsEmpty
 		}
 		// 2. Find 2 items : 1 - top item , and item that have
-		topItem = lifo.Items[0]
+		topItem = selectTopItem(&lifo.Items)
 
 		if len(lifo.Items) > 1 {
 			var nextTopItem model.LifoItem
