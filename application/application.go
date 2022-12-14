@@ -98,6 +98,7 @@ func (w *WebLiFoAppRunner) initRestApi() error {
 	w.webApiHandler.HandleFunc(router, "/api/lifo", w.webApiContext.CreateLifo, http.MethodPost)
 	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}", w.webApiContext.UpdateLifo, http.MethodPut)
 	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}", w.webApiContext.DeleteLifo, http.MethodDelete)
+	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}/flush", w.webApiContext.FlushLifo, http.MethodPost)
 	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}/push", w.webApiContext.PushLifo, http.MethodPost)
 	w.webApiHandler.HandleFunc(router, "/api/lifo/{id}/pop", w.webApiContext.PopLifo, http.MethodPost)
 

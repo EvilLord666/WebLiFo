@@ -1,8 +1,8 @@
 package dto
 
 type LifoInfo struct {
-	Id          uint   `json:"id"`
-	Name        string `json:"name"`
+	Id          uint   `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
 	Description string `json:"description"`
 	Size        int    `json:"size"`
 }

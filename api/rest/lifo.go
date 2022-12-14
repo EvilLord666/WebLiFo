@@ -166,6 +166,10 @@ func (webApiContext *WebApiContext) PopLifo(respWriter http.ResponseWriter, requ
 
 }
 
+func (webApiContext *WebApiContext) FlushLifo(respWriter http.ResponseWriter, request *http.Request) {
+
+}
+
 // BeforeHandle
 /* This function prepare response headers prior to response handle. It sets content-type and CORS headers.
  * Parameters:
