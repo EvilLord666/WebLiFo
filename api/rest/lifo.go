@@ -82,7 +82,27 @@ func (webApiContext *WebApiContext) GetLifoByIdWithItems(respWriter http.Respons
 }
 
 func (webApiContext *WebApiContext) CreateLifo(respWriter http.ResponseWriter, request *http.Request) {
-
+	webApiContext.beforeHandle(&respWriter)
+	var result interface{}
+	var lifoInfo dto.LifoInfo
+	status := http.StatusCreated
+	decoder := json.NewDecoder(request.Body)
+	err := decoder.Decode(&lifoInfo)
+	if err != nil {
+		status = http.StatusBadRequest
+	} else {
+		lifo, err := managers.CreateLifo(&lifoInfo, webApiContext.DbContext, webApiContext.Logger)
+		if err != nil {
+			if errors.Is(err, managers.BadLifoName) {
+				status = http.StatusBadRequest
+			} else {
+				status = http.StatusInternalServerError
+			}
+		} else {
+			result = factory.CreateLifoInfo(&lifo)
+		}
+	}
+	webApiContext.afterHandle(&respWriter, status, result)
 }
 
 func (webApiContext *WebApiContext) UpdateLifo(respWriter http.ResponseWriter, request *http.Request) {

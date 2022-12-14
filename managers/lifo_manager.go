@@ -10,7 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
-var BadSizeError error = errors.New("bad LIFO size error")
+var BadSizeError error = errors.New("bad LIFO size")
+var BadLifoName error = errors.New("bad LIFO name")
 
 func GetLifoList(db *gorm.DB, logger *logging.AppLogger) ([]model.Lifo, error) {
 	var lifoList []model.Lifo
@@ -30,7 +31,7 @@ func GetLifoByIdWithItems(id uint, db *gorm.DB, logger *logging.AppLogger) (mode
 	return lifo, err
 }
 
-func CreateLifo(lifo dto.LifoInfo, db *gorm.DB, logger *logging.AppLogger) (model.Lifo, error) {
+func CreateLifo(lifo *dto.LifoInfo, db *gorm.DB, logger *logging.AppLogger) (model.Lifo, error) {
 	if len(lifo.Name) == 0 {
 		msg := "lifo name can not be null or empty"
 		logger.Warn(stringFormatter.Format("It is unable to create new lifo, reason: {0}", msg))
