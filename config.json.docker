@@ -1,7 +1,7 @@
 {
     "server": {
         "schema": "http",
-        "address": "0.0.0.0",
+        "address": "web_lifo",
         "port": 8765
     },
     "db": {

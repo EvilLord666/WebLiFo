@@ -1,6 +1,6 @@
 version: "3.7"
 services:
-  database:
+  web_lifo_db_server:
     image: postgres
     restart: always
     env_file:
@@ -11,19 +11,23 @@ services:
       - "5432"
     volumes:
       - data:/var/lib/postgresql/data
-  server:
+  web_lifo:
     build:
       context: .
       dockerfile: Dockerfile
     links:
-      - database
+      - web_lifo_db_server
     environment:
       PGHOST: web_lifo_db_server
     depends_on:
-      - database
+      - web_lifo_db_server
+    hostname:
+       web_lifo
     networks:
       - default
     ports:
-    - "8765:8080"
+      - "8765:8765"
+    expose:
+      - "8765"
 volumes:
   data:
