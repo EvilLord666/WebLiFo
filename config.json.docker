@@ -1,0 +1,40 @@
+{
+    "server": {
+        "schema": "http",
+        "address": "0.0.0.0",
+        "port": 8765
+    },
+    "db": {
+        "hostname": "web_lifo_db_server",
+        "port": 5432,
+        "database": "web_lifo",
+        "user": "developer",
+        "password": "123",
+        "max_open_connections": 100,
+        "max_idle_connections": 10
+    },
+    "logging": {
+        "level": "debug",
+        "appenders": [
+            {
+                "type": "rolling_file",
+                "enabled": true,
+                "level": "debug",
+                "destination": {
+                    "file": "./logs/weblifo.log",
+                    "max_size": 100,
+                    "max_age": 5,
+                    "max_backups": 5,
+                    "local_time": true
+                }
+            },
+            {
+                "type": "console",
+                "enabled": true,
+                "level": "debug"
+            }
+        ],
+        "http_log": true,
+        "http_console_out": true
+    }
+}
